@@ -26,9 +26,9 @@ const (
 	sqlCreateMTLink2 = "('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', NOW(), NOW()), "
 	sqlCreateMTLink3 = "ON DUPLICATE KEY UPDATE " +
 		"s1 = VALUE(s1), s1_ch0 = VALUE(s1_ch0), s1_ch1 = VALUE(s1_ch1), ccq1 = VALUE(ccq1), rate1 = VALUE(rate1), " +
-		"diff_byte1 = IF(CAST(VALUE(prev_byte1) AS SIGNED) - CAST(prev_byte1 AS SIGNED) >= 0, VALUE(prev_byte1) - prev_byte1, 0), prev_byte1 = VALUE(prev_byte1), " +
+		"diff_byte1 = IF(VALUE(prev_byte1) > prev_byte1, VALUE(prev_byte1) - prev_byte1, 0), prev_byte1 = VALUE(prev_byte1), " +
 		"s2 = VALUE(s2), s2_ch0 = VALUE(s2_ch0), s2_ch1 = VALUE(s2_ch1), ccq2 = VALUE(ccq2), rate2 = VALUE(rate2), " +
-		"diff_byte2 = IF(CAST(VALUE(prev_byte2) AS SIGNED) - CAST(prev_byte2 AS SIGNED) >= 0, VALUE(prev_byte2) - prev_byte2, 0), prev_byte2 = VALUE(prev_byte2), " +
+		"diff_byte2 = IF(VALUE(prev_byte2) > prev_byte2, VALUE(prev_byte2) - prev_byte2, 0), prev_byte2 = VALUE(prev_byte2), " +
 		"updated_at = NOW()"
 
 	sqlCreateMtBoard1 = "INSERT INTO mt_new_boards (name, last_ip, created_at, updated_at) VALUES "
@@ -90,7 +90,7 @@ func main() {
 	defer f.Close()
 
 	l = h.InitLog(f, *logVerbose)
-	l.Printf(h.DEBUG, "START")
+	l.Printf(h.FUNC, "START")
 
 	//
 	// Load config vars
@@ -148,7 +148,7 @@ func main() {
 	close(chanQuery)
 	wgQueryQueue.Wait()
 
-	l.Printf(h.DEBUG, "END")
+	l.Printf(h.FUNC, "END")
 }
 
 func grabeMTQueue(wg *sync.WaitGroup, num int, chanQuery chan string, mtChannel chan string) {
@@ -174,7 +174,7 @@ func grabeMTQueue(wg *sync.WaitGroup, num int, chanQuery chan string, mtChannel 
 
 		reply, err := c.Run("/interface/wireless/registration-table/print", fmt.Sprintf("?interface=%s", mtBase["if_name"]))
 		if err != nil {
-			l.Printf(h.DEBUG, err.Error())
+			l.Printf(h.ERROR, err.Error())
 		}
 
 	BAD_RESPONCE:
